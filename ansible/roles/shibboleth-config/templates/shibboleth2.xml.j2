@@ -38,7 +38,8 @@
           </Host>
         </RequestMap>
     </RequestMapper>
-    <ApplicationDefaults entityID="default-always-overridden"
+    <!-- Archivematica Dashboard is default app -->
+    <ApplicationDefaults entityID="https://{{am_dashboard_host}}/Shibboleth.sso/metadata"
             REMOTE_USER="eppn persistent-id targeted-id"
             sessionHook="/Shibboleth.sso/AttrChecker"
             metadataAttributePrefix="Meta-" >
@@ -60,46 +61,7 @@
         <Errors supportContact="{{shibboleth_support_email}}"
                 helpLocation="/about.html"
                 styleSheet="/shibboleth-sp/main.css"/>
-        <!-- Default trust credentials for TLS - use Dashboard key and certs -->
-        <CredentialResolver type="File" use="TLS">
-          <Key>
-            <Path>{{ am_dashboard_ssl_key_file }}</Path>
-          </Key>
-          <Certificate>
-            <Path>{{ am_dashboard_ssl_cert_file }}</Path>
-            <Path>{{ am_dashboard_ssl_ca_bundle_file }}</Path>
-          </Certificate>
-        </CredentialResolver>
-        <!-- Metadata provider -->
-        <MetadataProvider type="Dynamic"
-            minCacheDuration="10" refreshDelayFactory="0.1">
-                <Subst>{{ shibboleth_metadata_url_subst }}</Subst>
-                <!--<MetadataFilter type="Signature" certificate="{{ shibboleth_metadata_signing_cert }}"/>-->
-                <TrustEngine type="Chaining">
-                <TrustEngine type="ExplicitKey"/>
-                <TrustEngine type="StaticPKIX">
-                    <!-- Use Dashboard key and cert when fetching IdP metadata -->
-                    <CredentialResolver type="File" use="TLS">
-                         <Key>
-                             <Path>{{ am_dashboard_ssl_key_file }}</Path>
-                         </Key>
-                         <Certificate>
-                             <Path>{{ am_dashboard_ssl_cert_file }}</Path>
-                             <Path>{{ am_dashboard_ssl_ca_bundle_file }}</Path>
-                        </Certificate>
-                    </CredentialResolver>
-                </TrustEngine>
-                <TrustEngine type="PKIX"/>
-            </TrustEngine>
-        </MetadataProvider>
-        <!-- Attributes config -->
-        <AttributeExtractor type="XML" validate="true" reloadChanges="true" path="attribute-map.xml"/>
-        <AttributeResolver type="Query" subjectMatch="true"/>
-        <AttributeFilter type="XML" validate="true" reloadChanges="true" path="attribute-policy.xml"/>
-    <!-- Archivematica Dashboard application -->
-    <ApplicationOverride id="am-dash"
-      entityID="https://{{am_dashboard_host}}/Shibboleth.sso/metadata">
-        <!-- Trust credentials config -->
+        <!-- Credential resolver -->
         <CredentialResolver type="File">
           <Key>
             <Path>{{ am_dashboard_ssl_key_file }}</Path>
@@ -125,7 +87,33 @@
                 </TrustEngine>
             <TrustEngine type="PKIX"/>
         </TrustEngine>
-        </ApplicationOverride>
+        <!-- Metadata provider -->
+        <MetadataProvider type="Dynamic"
+            minCacheDuration="10" refreshDelayFactory="0.1">
+                <Subst>{{ shibboleth_metadata_url_subst }}</Subst>
+                <MetadataFilter type="Signature" certificate="{{ shibboleth_metadata_signing_cert }}"/>
+                <TrustEngine type="Chaining">
+                <TrustEngine type="ExplicitKey"/>
+                <TrustEngine type="StaticPKIX">
+                    <!-- Use Dashboard key and cert when fetching IdP metadata -->
+                    <CredentialResolver type="File">
+                         <Key>
+                             <Path>{{ am_dashboard_ssl_key_file }}</Path>
+                         </Key>
+                         <Certificate>
+                             <Path>{{ am_dashboard_ssl_cert_file }}</Path>
+                             <Path>{{ am_dashboard_ssl_ca_bundle_file }}</Path>
+                        </Certificate>
+                    </CredentialResolver>
+                </TrustEngine>
+                <TrustEngine type="PKIX"/>
+            </TrustEngine>
+        </MetadataProvider>
+        <!-- Attributes config -->
+        <AttributeExtractor type="XML" validate="true" reloadChanges="true" path="attribute-map.xml"/>
+        <AttributeResolver type="Query" subjectMatch="true"/>
+        <AttributeFilter type="XML" validate="true" reloadChanges="true" path="attribute-policy.xml"/>
+        <ApplicationOverride id="am-dash"/>
         <!-- Archivematica Storage Service application -->
         <ApplicationOverride id="am-ss"
           entityID="http://{{ am_storage_service_host }}/Shibboleth.sso/metadata">
@@ -143,7 +131,7 @@
             <TrustEngine type="Chaining">
                 <TrustEngine type="ExplicitKey"/>
                     <TrustEngine type="StaticPKIX">
-                        <CredentialResolver type="File" use="TLS">
+                        <CredentialResolver type="File">
                              <Key>
                                  <Path>{{ am_storage_service_ssl_key_file }}</Path>
                              </Key>
@@ -155,27 +143,6 @@
                     </TrustEngine>
                 <TrustEngine type="PKIX"/>
             </TrustEngine>
-            <MetadataProvider type="Dynamic"
-                minCacheDuration="10" refreshDelayFactory="0.1">
-                    <Subst>{{ shibboleth_metadata_url_subst }}</Subst>
-                    <!--<MetadataFilter type="Signature" certificate="{{ shibboleth_metadata_signing_cert }}"/>-->
-                    <TrustEngine type="Chaining">
-                    <TrustEngine type="ExplicitKey"/>
-                    <TrustEngine type="StaticPKIX">
-                        <!-- Use Dashboard key and cert when fetching IdP metadata -->
-                        <CredentialResolver type="File" use="TLS">
-                             <Key>
-                                 <Path>{{ am_storage_service_ssl_key_file }}</Path>
-                             </Key>
-                             <Certificate>
-                                 <Path>{{ am_storage_service_ssl_cert_file }}</Path>
-                                 <Path>{{ am_storage_service_ssl_ca_bundle_file }}</Path>
-                             </Certificate>
-                        </CredentialResolver>
-                    </TrustEngine>
-                    <TrustEngine type="PKIX"/>
-                </TrustEngine>
-            </MetadataProvider>
         </ApplicationOverride>
         <!-- Troubleshooting: Extracts support information for IdP from its metadata. -->
         <AttributeExtractor type="Metadata" errorURL="errorURL" DisplayName="displayName"
