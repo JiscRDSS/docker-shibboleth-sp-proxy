@@ -50,7 +50,7 @@
                 cookieProps="https"
                 handlerURL="/Shibboleth.sso">
             <SSO entityID="{{shibboleth_idp_entity_id}}">SAML2</SSO>
-            <Logout>SAML2 Local</Logout>
+            <Logout>Local</Logout>
             <Handler type="MetadataGenerator" Location="/metadata" signing="true" http="false" https="true"/>
             <Handler type="Status" Location="/status" />
             <Handler type="Session" Location="/session" showAttributeValues="true"/>
