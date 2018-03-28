@@ -7,13 +7,21 @@ CustomLog ${APACHE_LOG_DIR}/access.log combined
     ServerName https://{{am_dashboard_host}}
     UseCanonicalName On
 
-    <Proxy *>
+    <Location />
         AuthType shibboleth
         ShibRequestSetting applicationId am-dash
         ShibRequestSetting requireSession true
         ShibUseHeaders On
         Require shibboleth
-    </Proxy>
+    </Location>
+
+    # Exclude /api and /media from Shibboleth protection
+    <LocationMatch "^/(api|media)/.*">
+        AuthType shibboleth
+        ShibRequestSetting applicationId am-dash
+        ShibRequestSetting requireSession false
+        ShibUseHeaders On
+    </LocationMatch>
 
     ProxyRequests Off
     ProxyPreserveHost On
@@ -31,13 +39,22 @@ CustomLog ${APACHE_LOG_DIR}/access.log combined
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-    <Proxy *>
+    <Location />
         AuthType shibboleth
         ShibRequestSetting applicationId am-ss
         ShibRequestSetting requireSession true
         ShibUseHeaders On
         Require shibboleth
-    </Proxy>
+    </Location>
+
+    # Exclude /api and /static from Shibboleth protection
+    <LocationMatch "^/(api|static)/.*" >
+        AuthType shibboleth
+        ShibRequestSetting applicationId am-ss
+        ShibRequestSetting requireSession false
+        ShibUseHeaders On
+    </LocationMatch>
+
 
     ProxyRequests Off
     ProxyPreserveHost On
